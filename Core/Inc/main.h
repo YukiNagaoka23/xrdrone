@@ -73,25 +73,7 @@ void Error_Handler(void);
 #define SWO_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-/* RC受信入力 (TIM3 入力キャプチャ, Futaba R3206SBM想定) */
-#define RC_AIL_Pin GPIO_PIN_6
-#define RC_AIL_GPIO_Port GPIOA
-#define RC_ELE_Pin GPIO_PIN_7
-#define RC_ELE_GPIO_Port GPIOA
-#define RC_RUD_Pin GPIO_PIN_0
-#define RC_RUD_GPIO_Port GPIOB
-#define RC_THR_Pin GPIO_PIN_1
-#define RC_THR_GPIO_Port GPIOB
 
-/* PWM出力 (TIM1, サーボ/ESCへのパススルー出力) */
-#define PWM_AIL_Pin GPIO_PIN_8
-#define PWM_AIL_GPIO_Port GPIOA
-#define PWM_ELE_Pin GPIO_PIN_9
-#define PWM_ELE_GPIO_Port GPIOA
-#define PWM_RUD_Pin GPIO_PIN_10
-#define PWM_RUD_GPIO_Port GPIOA
-#define PWM_THR_Pin GPIO_PIN_11
-#define PWM_THR_GPIO_Port GPIOA
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

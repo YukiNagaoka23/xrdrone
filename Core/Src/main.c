@@ -22,12 +22,10 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include "bno055.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "rc_input.h"
-#include <stdio.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,14 +35,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-/* 信号ロス時のフェイルセーフ値[us] (舵は中立、スロットルは絞る) */
-#define FAILSAFE_AIL_US  1500
-#define FAILSAFE_ELE_US  1500
-#define FAILSAFE_RUD_US  1500
-#define FAILSAFE_THR_US  1000
 
-/* UARTテレメトリ送信周期[ms] */
-#define TELEMETRY_PERIOD_MS 50
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -98,25 +89,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM1_Init();
   MX_TIM2_Init();
-  MX_TIM3_Init();
   MX_USART2_UART_Init();
   MX_I2C1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  /* PWM開始 */
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 
-  /* サーボ/ESCへのPWM出力(パススルー先)を開始 */
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
-
-  /* プロポ受信機からの入力キャプチャを開始 */
-  RC_Input_Init();
-
-  uint32_t telemetry_last_tick = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -126,33 +104,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    /* --- 受信値をそのままPWM出力へ反映するパススルー制御 --- */
-    /* 信号が有効な間はそのまま出力し、ロスしたらフェイルセーフ値を出力する */
-    uint16_t ail = RC_IsSignalValid(RC_CH_AILERON)  ? RC_GetPulseUs(RC_CH_AILERON)  : FAILSAFE_AIL_US;
-    uint16_t ele = RC_IsSignalValid(RC_CH_ELEVATOR) ? RC_GetPulseUs(RC_CH_ELEVATOR) : FAILSAFE_ELE_US;
-    uint16_t rud = RC_IsSignalValid(RC_CH_RUDDER)   ? RC_GetPulseUs(RC_CH_RUDDER)   : FAILSAFE_RUD_US;
-    uint16_t thr = RC_IsSignalValid(RC_CH_THROTTLE) ? RC_GetPulseUs(RC_CH_THROTTLE) : FAILSAFE_THR_US;
-
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, ail);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, ele);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, rud);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, thr);
-
-    /* --- 受信値をUSART2で定期的にテレメトリ送信 --- */
-    if ((HAL_GetTick() - telemetry_last_tick) >= TELEMETRY_PERIOD_MS)
-    {
-      telemetry_last_tick = HAL_GetTick();
-
-      char msg[96];
-      int len = snprintf(msg, sizeof(msg),
-                          "AIL:%4u ELE:%4u RUD:%4u THR:%4u %s\r\n",
-                          ail, ele, rud, thr,
-                          RC_IsSignalValid(RC_CH_THROTTLE) ? "OK" : "LOST");
-      if (len > 0)
-      {
-        HAL_UART_Transmit(&huart2, (uint8_t *)msg, (uint16_t)len, 10);
-      }
-    }
   }
   /* USER CODE END 3 */
 }
